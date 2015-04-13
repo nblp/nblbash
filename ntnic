@@ -8,8 +8,10 @@
 
 #this script rename file inorder that its name fits the following standards:
 #1) " " are replaced by "_"
-#2) no special characters ( "*#\/|?!:;{}[]$><() ) they are replaced by "-" 
-#   (implemented: ( ) )
+#2) no special characters ( "#\/|:;{}[]><() ) 
+#   they are replaced according to this table 
+#	(	->	-
+#	)	->	-
 #3) no accent (éàï...) 
 #   (implemented: é è à ï)
 
