@@ -1,84 +1,96 @@
 #!/bin/sh
 
-############################
-# NO, THAT NAME IS CORRECT #
-############################
+#######################################################################
+#################### NO, THAT NAME IS CORRECT #########################
+#######################################################################
 # author: Nicolas Plancherel (nblp)
 # last update:    22 mars 2015
 
-#this script rename file inorder that its name fits the following standards:
-#1) " " are replaced by "_"
-#2) no special characters ( "#\/|:;{}[]><() ) 
-#   they are replaced according to this table 
-#	(	->	-
-#	)	->	-
-#3) no accent (éàï...) 
-#   (implemented: é è à ï)
+# this script rename file inorder that its name contains no special
+# characters.
+# if called with a directory:
+#   will recursively change name of all 
+#   the file contained by the directory (but not the directory itself)
+# if called with some filename:
+#   will only rename these files
 
-#if called with a directory:
-#	will recursively change name of all 
-#	the file contained by the directory (but not the directory itself)
-#if called with some filename:
-#	will only rename these files
+#######################################################################
+##### GLOBAL PARAMETERS ###############################################
+#######################################################################
 
-#this function prints error if there is one
-#call: error <error message>
+# to_replace[i] will become replacing[i]
+to_replace=(' ' é è à ï ü)
+replacing=(_ e e a i u)
+
+#######################################################################
+##### UTILS FUNCTIONS #################################################
+#######################################################################
+
+# this function prints error if there is one
+# call: error <error message>
 error() {
-	echo "ERROR: $1" 1>&2
-	echo "Usage:\t$0 <directory name> or \n\t$0 <file name>*"
+    echo "ERROR: $1" 1>&2
+    echo "Usage:\t$0 <directory name> or \n\t$0 <file name>*"
 }
-#this function rename a file
-#/!\warning the filename must contain the path to the file name
-#call: fileRenaming <filename>
+
+# this function rename a file
+# /!\warning the filename must contain the path to the file name
+# call: fileRenaming <filename>
 fileRenaming () {
-	newName=`basename "$1" | sed 's/'" "'/'"_"'/g' | \
-sed 's/'"é"'/'"e"'/g' | sed 's/'"è"'/'"e"'/g' | \
-sed 's/'"à"'/'"a"'/g' | sed 's/'"ï"'/'"i"'/g' | \
-sed 's/'"("'/'"-"'/g' | sed 's/'")"'/'"-"'/g'`	
-	pathName=`dirname "$1"`
-	pathName=`dirFormat_fct "${pathName}"`
-	echo "renaming $1 in ${pathName}${newName}";
-	mv "$1" "${pathName}${newName}" 2> /dev/null
+    newName=`basename "$1"`
+    for ((i=0; i<${#to_replace[@]};i++));do
+        newName=`echo "$newName" | sed "s/${to_replace[$i]}/${replacing[$i]}/g"`
+    done
+    pathName=`dirname "$1"`
+    pathName=`dirFormat_fct "${pathName}"`
+    echo "renaming $1 in ${pathName}${newName}";
+    mv "$1" "${pathName}${newName}" 2> /dev/null
 }
-#this function add a / in the end of the directory if needed
-#call: dirFormat_fct <name of directory>
+
+# this function add a / in the end of the directory if needed
+# call: dirFormat_fct <name of directory>
 dirFormat_fct () {
-	alreadyHave=`echo "$1" | grep "/"$`
-	if [ -z "$alreadyHave" ];then
-		echo "${1}/"
-	else
-		echo "$1"
-	fi
+    alreadyHave=`echo "$1" | grep "/"$`
+    if [ -z "$alreadyHave" ];then
+        echo "${1}/"
+    else
+	echo "$1"
+    fi
 }
-#check inputs if an error could be fatal for the script
+
+#######################################################################
+##### MAIN ############################################################
+#######################################################################
+
+# check inputs if an error could be fatal for the script
 if [ $# -lt 1 ];then
-	error "not enough arguments"
-	exit 1
+    error "not enough arguments"
+    exit 1
 fi
 if [ ! -e "$1" ];then
-	error "the arguments are not all files or directory"
-	exit 1
+    error "the arguments are not all files or directory"
+    exit 1
 fi
 
-#=== SCRIPT USED WITH DIRECTORY ===#
+#### SCRIPT USED WITH DIRECTORY #######################################
 if [ -d "$1" ];then
-	dirFormat=`dirFormat_fct "$1"`
-	#recursively rename all the files
-	for obj in "$dirFormat"*
-	do
-		if [ -d "$obj" ];then
-			$0 "$obj" 
-			fileRenaming "$obj"
-		else
-			fileRenaming "$obj"
-		fi
-	done
-#=== SCRIPT USED WITH LIST OF FILES ===#
-else
-	fileRenaming "$1"
-	if [ $# -ge 2 ];then
-		shift
-		$0 "$@"
+    dirFormat=`dirFormat_fct "$1"`
+    #recursively rename all the files
+    for obj in "$dirFormat"*
+    do
+	if [ -d "$obj" ];then
+	    $0 "$obj" 
+	    fileRenaming "$obj"
+	else
+	    fileRenaming "$obj"
 	fi
+    done
+##### SCRIPT USED WITH LIST OF FILES ##################################
+else
+    fileRenaming "$1"
+    if [ $# -ge 2 ];then
+    	shift
+    	$0 "$@"
+    fi
 fi
 
