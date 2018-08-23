@@ -4,7 +4,7 @@
 #################### NO, THAT NAME IS CORRECT #########################
 #######################################################################
 # author: Nicolas Plancherel (nblp)
-# last update:    22 mars 2015
+# last update:    23 August 2018
 
 # this script rename file inorder that its name contains no special
 # characters.
@@ -19,8 +19,8 @@
 #######################################################################
 
 # to_replace[i] will become replacing[i]
-to_replace=(' ' é è à ï ü)
-replacing=(_ e e a i u)
+to_replace=(' ' é è à ï ü ,)
+replacing=(_ e e a i u _)
 
 #######################################################################
 ##### UTILS FUNCTIONS #################################################
